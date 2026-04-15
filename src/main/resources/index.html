@@ -34,7 +34,7 @@
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
-  }
+    }
 
   .logo {
     display: flex;
@@ -69,6 +69,11 @@
     50% { opacity: 0.4; }
   }
 
+.topbar-middle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
   .topbar-right {
     display: flex;
     align-items: center;
@@ -384,15 +389,23 @@
 <div id="app">
   <div class="topbar">
     <div class="logo">
-      <span class="logo-name">MemMunk</span>
-      <span class="logo-sub"><span class="status-dot"></span>memmunk-production.up.railway.app</span>
+        <span class="logo-name">MemMunk</span>
+        <span class="logo-sub"><span class="status-dot"></span>made with ❤️ by Nicole Lee</span>
+    </div>
+    <div class="topbar-middle">
+        <button class="btn" onclick="doFlush()">flush</button>
+        <button class="btn" onclick="doCompact()">compact</button>
+        <button class="btn accent" onclick="loadDebug()">refresh</button>
     </div>
     <div class="topbar-right">
-      <button class="btn" onclick="doFlush()">flush</button>
-      <button class="btn" onclick="doCompact()">compact</button>
-      <button class="btn accent" onclick="loadDebug()">refresh</button>
+        <button class="btn" onclick="window.open('https://github.com/nicoleleehy1/lsm-tree', '_blank')">
+            github
+        </button>
+        <!-- <button class="btn" onclick="window.open('https://github.com/nicoleleehy1/lsm-tree', '_blank')">
+            docs
+        </button> -->
     </div>
-  </div>
+    </div>
 
   <div class="stats-row">
     <div class="stat-cell">
