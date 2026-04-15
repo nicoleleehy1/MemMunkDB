@@ -242,9 +242,13 @@ public class SSTable implements Closeable {
     /** Delete the three files backing this SSTable. */
     public void delete() throws IOException {
         Path base = dataPath.getParent().resolve(String.valueOf(sequenceNumber));
-        Files.deleteIfExists(dataPath);
-        Files.deleteIfExists(Path.of(base + EXT_INDEX));
-        Files.deleteIfExists(Path.of(base + EXT_BLOOM));
+        Path idxPath   = Path.of(base + EXT_INDEX);
+        Path bloomPath = Path.of(base + EXT_BLOOM);
+        log.info("SSTable.delete() — attempting to remove: {} | {} | {}", dataPath, idxPath, bloomPath);
+        boolean deletedData  = Files.deleteIfExists(dataPath);
+        boolean deletedIdx   = Files.deleteIfExists(idxPath);
+        boolean deletedBloom = Files.deleteIfExists(bloomPath);
+        log.info("SSTable.delete() — results: .sst={} .idx={} .bloom={}", deletedData, deletedIdx, deletedBloom);
     }
 
     @Override

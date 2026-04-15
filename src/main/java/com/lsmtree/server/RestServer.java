@@ -14,6 +14,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -55,6 +56,7 @@ public class RestServer {
         server.createContext("/flush",   new FlushHandler(store));
         server.createContext("/compact", new CompactHandler(store));
         server.createContext("/debug",   new DebugHandler(store));
+        server.createContext("/sstable", new SstableHandler(store));
         // Serve index.html at / — must be registered last so specific paths take priority
         server.createContext("/",        new DashboardHandler());
         server.setExecutor(Executors.newFixedThreadPool(8));
@@ -317,6 +319,50 @@ public class RestServer {
             int after = store.ssTableCount();
             sendJson(ex, 200,
                     "{\"ok\":true,\"before\":" + before + ",\"after\":" + after + "}");
+        }
+    }
+
+    // DELETE /sstable?file=<filename.sst>
+    static class SstableHandler extends BaseHandler {
+        SstableHandler(LSMStore store) { super(store); }
+
+        @Override
+        void dispatch(HttpExchange ex) throws Exception {
+            if (!requireMethod(ex, "DELETE")) return;
+
+            String file = queryParam(ex, "file");
+            if (file == null || file.isBlank()) {
+                sendJson(ex, 400, error("Missing query parameter: file"));
+                return;
+            }
+
+            // Reject path traversal attempts
+            if (file.contains("/") || file.contains("\\") || file.contains("..")) {
+                sendJson(ex, 400, error("Invalid filename"));
+                return;
+            }
+
+            // Debug: log exactly what was received vs what exists
+            List<String> available = store.listSstableFilenames();
+            System.err.printf("[DELETE /sstable] received=%s | store has %d SSTable(s): %s%n",
+                    file, available.size(), available);
+
+            boolean removed = store.removeSstable(file);
+            if (removed) {
+                sendJson(ex, 200, "{\"ok\":true}");
+            } else {
+                // Rich error so the caller can see the mismatch
+                StringBuilder body = new StringBuilder();
+                body.append("{\"ok\":false,\"error\":\"not found\"");
+                body.append(",\"received\":").append(js(file));
+                body.append(",\"available\":[");
+                for (int i = 0; i < available.size(); i++) {
+                    if (i > 0) body.append(",");
+                    body.append(js(available.get(i)));
+                }
+                body.append("]}");
+                sendJson(ex, 404, body.toString());
+            }
         }
     }
 

@@ -390,7 +390,7 @@
   <div class="topbar">
     <div class="logo">
         <span class="logo-name">MemMunk</span>
-        <span class="logo-sub"><span class="status-dot"></span>made with ❤️ by Nicole Lee</span>
+        <span class="logo-sub"><span class="status-dot"></span>made with ♥︎ by Nicole Lee</span>
     </div>
     <div class="topbar-middle">
         <button class="btn" onclick="doFlush()">flush</button>
@@ -401,6 +401,7 @@
         <button class="btn" onclick="window.open('https://github.com/nicoleleehy1/lsm-tree', '_blank')">
             github
         </button>
+        <button class="btn" onclick="doExport()">export</button>
         <!-- <button class="btn" onclick="window.open('https://github.com/nicoleleehy1/lsm-tree', '_blank')">
             docs
         </button> -->
@@ -567,13 +568,17 @@ async function loadDebug() {
       sstRows.innerHTML = sstables.map(s => {
         const tierClass = ['t0','t1','t2','t2'][Math.min(s.tier||0,3)];
         return `<div class="sst-row">
-          <div>
+            <div>
             <div class="sst-name">${s.file || s.name || 'sst'}</div>
             <div class="sst-meta">${s.sizeHuman || ''} · ${(s.entryCount||0).toLocaleString()} entries</div>
-          </div>
-          <span class="badge ${tierClass}">tier ${s.tier||0}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge ${tierClass}">tier ${s.tier||0}</span>
+            <button class="btn danger" style="padding:3px 8px;font-size:10px;" 
+                onclick="deleteSst('${s.file || s.name}')">delete</button>
+            </div>
         </div>`;
-      }).join('');
+        }).join('');
     }
   } catch(e) {
     console.error(e);
@@ -618,6 +623,15 @@ async function doDelete() {
   loadDebug();
 }
 
+async function deleteSst(filename) {
+  if (!confirm('Delete ' + filename + '? This is irreversible.')) return;
+  const r = await fetch(BASE + '/sstable?file=' + encodeURIComponent(filename), {method:'DELETE'});
+  const d = await r.json();
+  if (d.ok) showToast('deleted ' + filename);
+  else showToast('error: ' + d.error);
+  loadDebug();
+}
+
 async function doScan() {
   const prefix = document.getElementById('scan-prefix').value.trim();
   const r = await fetch(BASE + '/scan?prefix=' + encodeURIComponent(prefix));
@@ -642,6 +656,16 @@ async function doCompact() {
   await fetch(BASE + '/compact', {method:'POST'});
   showToast('compaction complete');
   loadDebug();
+}
+
+async function doExport() {
+  const r = await fetch(BASE + '/scan?prefix=');
+  const d = await r.json();
+  const blob = new Blob([JSON.stringify(d, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'memmunk-export.json';
+  a.click();
 }
 
 function switchTab(name, el) {

@@ -211,6 +211,57 @@ public class LSMStore implements Closeable {
         }
     }
 
+    /**
+     * Remove an SSTable from the in-memory list and delete its on-disk files
+     * ({@code .sst}, {@code .idx}, {@code .bloom}) by matching {@code filename}
+     * against each SSTable's data-file name.
+     *
+     * @param filename bare filename, e.g. {@code "1776206339624.sst"}
+     * @return {@code true} if the SSTable was found and removed,
+     *         {@code false} if no SSTable with that filename exists
+     */
+    public boolean removeSstable(String filename) throws IOException {
+        // Normalise to just the base name so callers can pass a full path or bare name.
+        String incoming = Path.of(filename).getFileName().toString();
+        lock.writeLock().lock();
+        try {
+            List<String> available = ssTables.stream()
+                    .map(s -> s.dataPath().getFileName().toString())
+                    .toList();
+            log.info("removeSstable: received='{}' normalised='{}' available={}",
+                    filename, incoming, available);
+
+            for (int i = 0; i < ssTables.size(); i++) {
+                SSTable sst = ssTables.get(i);
+                String sstName = sst.dataPath().getFileName().toString();
+                // Match on normalised base name OR full absolute path string
+                if (sstName.equals(incoming) || sst.dataPath().toString().equals(filename)) {
+                    log.info("removeSstable: matched '{}' → calling delete()", sst.dataPath());
+                    sst.delete();
+                    ssTables.remove(i);
+                    log.info("removeSstable: done, {} SSTable(s) remaining", ssTables.size());
+                    return true;
+                }
+            }
+            log.warn("removeSstable: no match for '{}'. Available: {}", incoming, available);
+            return false;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /** Return the bare filenames of all current on-disk SSTables (e.g. {@code "123.sst"}). */
+    public List<String> listSstableFilenames() {
+        lock.readLock().lock();
+        try {
+            return ssTables.stream()
+                    .map(s -> s.dataPath().getFileName().toString())
+                    .toList();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
     /** Number of on-disk SSTables. */
     public int ssTableCount() {
         lock.readLock().lock();
@@ -261,6 +312,7 @@ public class LSMStore implements Closeable {
                 tierCounts[tier]++;
 
                 sb.append("{");
+                sb.append("\"file\":").append(jsonStr(sst.dataPath().getFileName().toString())).append(",");
                 sb.append("\"seq\":").append(sst.sequenceNumber()).append(",");
                 sb.append("\"sizeBytes\":").append(bytes).append(",");
                 sb.append("\"sizeHuman\":").append(jsonStr(humanBytes(bytes))).append(",");
