@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn test *)",
+      "Bash(mvn *)",
+      "Bash(ls -lh target/*.jar)"
+    ]
+  }
+}

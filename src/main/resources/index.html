@@ -1,0 +1,644 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Berkeley+Mono&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #b8f566;
+    --accent-dim: #7ab83e;
+    --text: #f0ede8;
+    --muted: #666;
+    --danger: #ff5f57;
+    --info: #5ba4f5;
+    --mono: 'Berkeley Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #app {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    min-height: 600px;
+    padding: 0;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .logo-name {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.accent { background: var(--accent); color: #0e0e0e; border-color: var(--accent); font-weight: 500; }
+  .btn.accent:hover { background: #ceff88; }
+  .btn.danger { border-color: #3a1f1f; color: var(--danger); }
+  .btn.danger:hover { border-color: var(--danger); background: #1a0a0a; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-cell {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .stat-val.accent { color: var(--accent); }
+
+  .main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    height: calc(100% - 110px);
+  }
+
+  .left-panel {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .field { margin-bottom: 8px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-family: var(--mono);
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus { border-color: var(--accent); }
+
+  .btn-row { display: flex; gap: 6px; margin-top: 8px; }
+  .btn-row .btn { flex: 1; }
+
+  .result-box {
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--info);
+    min-height: 32px;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .result-box.error { color: var(--danger); }
+  .result-box.success { color: var(--accent); }
+
+  .right-panel { overflow-y: auto; }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 160px 1fr 80px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .th {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 80px;
+    padding: 9px 20px;
+    border-bottom: 1px solid #1a1a1a;
+    align-items: center;
+    transition: background 0.1s;
+  }
+
+  .table-row:hover { background: var(--surface); }
+
+  .key-cell {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .val-cell {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 12px;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .badge.live { background: #1a2e0f; color: var(--accent); }
+  .badge.tomb { background: #2a0f0f; color: var(--danger); }
+  .badge.t0 { background: #0f1e2e; color: var(--info); }
+  .badge.t1 { background: #1e1a0f; color: #f5c542; }
+  .badge.t2 { background: #1e0f1e; color: #c084fc; }
+
+  .sst-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .sst-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .sst-meta {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .tab-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 10px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .toast {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    animation: fadeIn 0.2s ease;
+    z-index: 10;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .scan-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .scan-row .field { flex: 1; margin: 0; }
+
+  /* ── docs tab ─────────────────────────────────────────────── */
+  .docs-panel {
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  .docs-intro {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.75;
+    border-left: 2px solid var(--border);
+    padding-left: 14px;
+    margin-bottom: 32px;
+  }
+
+  .doc-group { margin-bottom: 24px; }
+
+  .doc-cmd {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-cmd::before {
+    content: '//';
+    color: var(--border);
+    font-size: 13px;
+  }
+
+  .doc-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    padding-left: 22px;
+    border-left: 1px solid var(--border);
+    margin-left: 2px;
+  }
+
+  .doc-desc em {
+    font-style: normal;
+    color: var(--text);
+  }
+</style>
+
+<div id="app">
+  <div class="topbar">
+    <div class="logo">
+      <span class="logo-name">MemMunk</span>
+      <span class="logo-sub"><span class="status-dot"></span>memmunk-production.up.railway.app</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn" onclick="doFlush()">flush</button>
+      <button class="btn" onclick="doCompact()">compact</button>
+      <button class="btn accent" onclick="loadDebug()">refresh</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="stat-label">memtable entries</div>
+      <div class="stat-val accent" id="s-mem">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">sstables</div>
+      <div class="stat-val" id="s-sst">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">total keys</div>
+      <div class="stat-val" id="s-keys">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">compaction tiers</div>
+      <div class="stat-val" id="s-tiers">—</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="left-panel">
+      <div class="panel-section">
+        <div class="section-label">put</div>
+        <div class="field"><label>key</label><input id="put-key" placeholder="user:1234" /></div>
+        <div class="field"><label>value</label><input id="put-val" placeholder='{"name":"Nicole"}' /></div>
+        <button class="btn accent" style="width:100%;margin-top:4px;" onclick="doPut()">put</button>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-label">get / delete</div>
+        <div class="field"><label>key</label><input id="get-key" placeholder="user:1234" /></div>
+        <div class="btn-row">
+          <button class="btn" onclick="doGet()">get</button>
+          <button class="btn danger" onclick="doDelete()">delete</button>
+        </div>
+        <div class="result-box" id="get-result">—</div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-label">scan by prefix</div>
+        <div class="scan-row">
+          <div class="field"><label>prefix</label><input id="scan-prefix" placeholder="user:" /></div>
+          <button class="btn" style="margin-bottom:0;height:32px;" onclick="doScan()">scan</button>
+        </div>
+        <div class="result-box" id="scan-result" style="margin-top:8px;">—</div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="tab-row">
+        <div class="tab active" onclick="switchTab('memtable',this)">memtable</div>
+        <div class="tab" onclick="switchTab('sstables',this)">sstables</div>
+        <div class="tab" onclick="switchTab('docs',this)">docs</div>
+      </div>
+
+      <div id="tab-docs" style="display:none;">
+        <div class="docs-panel">
+          <div class="docs-intro">MemMunk is a live LevelDB-style key-value store built from scratch in Java — memtable, write-ahead log, SSTables, and compaction, all running in production.</div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">put</div>
+            <div class="doc-desc">Write any key-value pair. Writes go to the in-memory memtable first. Keys and values can be <em>any string or JSON</em>.</div>
+          </div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">get / delete</div>
+            <div class="doc-desc">Look up or tombstone a key. Deletes write a <em>marker</em> that is cleaned up during compaction.</div>
+          </div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">scan by prefix</div>
+            <div class="doc-desc">Returns all live keys starting with a given string. Try <em>user:</em> to see all user keys. Fast because keys are sorted.</div>
+          </div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">flush</div>
+            <div class="doc-desc">Push the memtable to disk as an <em>immutable SSTable file</em>. Happens automatically at the size threshold.</div>
+          </div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">compact</div>
+            <div class="doc-desc">Merge SSTable files within the same size tier, <em>reclaim space</em>, and purge deleted keys.</div>
+          </div>
+
+          <div class="doc-group">
+            <div class="doc-cmd">stats row</div>
+            <div class="doc-desc">Live <em>memtable entry count</em>, SSTable file count, total keys across all layers, and active compaction tiers.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-memtable">
+        <div class="table-header">
+          <div class="th">key</div>
+          <div class="th">value</div>
+          <div class="th">status</div>
+        </div>
+        <div id="mem-rows"><div class="empty-state">no entries — put something</div></div>
+      </div>
+
+      <div id="tab-sstables" style="display:none;">
+        <div class="table-header">
+          <div class="th">file</div>
+          <div class="th">size · entries</div>
+          <div class="th">tier</div>
+        </div>
+        <div id="sst-rows"><div class="empty-state">no sstables yet — flush the memtable</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = 'https://memmunk-production.up.railway.app';
+let toast;
+
+function showToast(msg) {
+  if (toast) toast.remove();
+  toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.getElementById('app').style.position = 'relative';
+  document.getElementById('app').appendChild(toast);
+  setTimeout(() => toast && toast.remove(), 2000);
+}
+
+async function loadDebug() {
+  try {
+    const r = await fetch(BASE + '/debug');
+    const d = await r.json();
+    const memEntries = d.memtable?.entries || [];
+    const sstables = d.sstables || [];
+    const totalKeys = memEntries.filter(e => !e.tombstone).length +
+      sstables.reduce((a, s) => a + (s.entryCount || 0), 0);
+    const activeTiers = (d.compaction?.tiers || []).filter(t => t.files > 0).length;
+
+    document.getElementById('s-mem').textContent = memEntries.length;
+    document.getElementById('s-sst').textContent = sstables.length;
+    document.getElementById('s-keys').textContent = totalKeys;
+    document.getElementById('s-tiers').textContent = activeTiers;
+
+    const memRows = document.getElementById('mem-rows');
+    if (!memEntries.length) {
+      memRows.innerHTML = '<div class="empty-state">memtable is empty</div>';
+    } else {
+      memRows.innerHTML = memEntries.map(e => `
+        <div class="table-row">
+          <div class="key-cell">${e.key}</div>
+          <div class="val-cell">${e.tombstone ? '—' : (e.value || '')}</div>
+          <div><span class="badge ${e.tombstone ? 'tomb' : 'live'}">${e.tombstone ? 'tombstone' : 'live'}</span></div>
+        </div>`).join('');
+    }
+
+    const sstRows = document.getElementById('sst-rows');
+    if (!sstables.length) {
+      sstRows.innerHTML = '<div class="empty-state">no sstables yet — flush the memtable</div>';
+    } else {
+      sstRows.innerHTML = sstables.map(s => {
+        const tierClass = ['t0','t1','t2','t2'][Math.min(s.tier||0,3)];
+        return `<div class="sst-row">
+          <div>
+            <div class="sst-name">${s.file || s.name || 'sst'}</div>
+            <div class="sst-meta">${s.sizeHuman || ''} · ${(s.entryCount||0).toLocaleString()} entries</div>
+          </div>
+          <span class="badge ${tierClass}">tier ${s.tier||0}</span>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function doPut() {
+  const key = document.getElementById('put-key').value.trim();
+  const value = document.getElementById('put-val').value.trim();
+  if (!key || !value) return;
+  await fetch(BASE + '/put', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({key, value})
+  });
+  showToast('put ' + key);
+  loadDebug();
+}
+
+async function doGet() {
+  const key = document.getElementById('get-key').value.trim();
+  if (!key) return;
+  const r = await fetch(BASE + '/get?key=' + encodeURIComponent(key));
+  const d = await r.json();
+  const box = document.getElementById('get-result');
+  if (d.error) {
+    box.className = 'result-box error';
+    box.textContent = d.error;
+  } else {
+    box.className = 'result-box success';
+    box.textContent = d.value || JSON.stringify(d);
+  }
+}
+
+async function doDelete() {
+  const key = document.getElementById('get-key').value.trim();
+  if (!key) return;
+  await fetch(BASE + '/delete?key=' + encodeURIComponent(key), {method:'DELETE'});
+  showToast('deleted ' + key);
+  document.getElementById('get-result').className = 'result-box';
+  document.getElementById('get-result').textContent = 'deleted';
+  loadDebug();
+}
+
+async function doScan() {
+  const prefix = document.getElementById('scan-prefix').value.trim();
+  const r = await fetch(BASE + '/scan?prefix=' + encodeURIComponent(prefix));
+  const d = await r.json();
+  const box = document.getElementById('scan-result');
+  if (!d.length) {
+    box.className = 'result-box error';
+    box.textContent = 'no keys found';
+  } else {
+    box.className = 'result-box success';
+    box.textContent = d.map(e => e.key + ' → ' + e.value).join('\n');
+  }
+}
+
+async function doFlush() {
+  await fetch(BASE + '/flush', {method:'POST'});
+  showToast('flushed to SSTable');
+  loadDebug();
+}
+
+async function doCompact() {
+  await fetch(BASE + '/compact', {method:'POST'});
+  showToast('compaction complete');
+  loadDebug();
+}
+
+function switchTab(name, el) {
+  ['memtable', 'sstables', 'docs'].forEach(id =>
+    document.getElementById('tab-' + id).style.display = name === id ? '' : 'none'
+  );
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+loadDebug();
+setInterval(loadDebug, 5000);
+</script>
